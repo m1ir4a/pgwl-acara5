@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 
 class PointsController extends Controller
 {
+    protected $points;
+
     public function __construct()
     {
         $this->points = new pointsModel();
@@ -32,57 +34,55 @@ class PointsController extends Controller
      */
     public function store(Request $request)
     {
-
-    //Validasi input
-    $request->validate(
+        //Validasi input
+        $request->validate(
             [
-                'geometry_point' => 'required',
                 'name' => 'required|string|max:255',
+                'geometry_point' => 'required',
                 'description' => 'required|string',
-                'image' => 'nullable|image|mimes:jpeg,png,jng|max:2028',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             ],
             [
-                'geometry_point.required' => 'Field geometry point harus diisi.',
-                'name.required' => 'Field name harus diisi.',
-                'name.string' => 'Field name harus berupa string.',
-                'name.max' => 'Field name tidak boleh lebih dari 255 karakter.',
-                'description.string' => 'Field description harus berupa string.',
-                'image.image' => 'Field  harus berupa gambar.',
-                'image.mimes' => 'Field gambar harus berformat jpeg, png, jpg.',
-                'image.max' => 'Ukuran field gambar tidak boleh lebih dari 2MB.',
+                'name.required' => 'Nama point wajib diisi.',
+                'geometry_point.required' => 'Geometri point wajib diisi.',
+                'name.max' => 'Nama point tidak boleh lebih dari 255 karakter.',
+                'name,string' => 'Nama point harus berupa teks.',
+                'description.required' => 'Deskripsi point wajib diisi.',
+                'description.string' => 'Deskripsi point harus berupa teks.',
+                'image.image' => 'File gambar tidak valid.',
+                'image.mimes' => 'Format gambar tidak didukung. Harus berupa JPEG, PNG, JPG, atau GIF.',
+                'image.max' => 'Ukuran gambar terlalu besar. Maksimal 2MB.',
             ]
         );
 
-        #Create directory for images if it doesn't exist
+        // Cek dan buat direktori penyimpanan gambar jika belum ada
         if (!is_dir('storage/images')) {
             mkdir('./storage/images', 0777);
-            }
+        }
 
-        #Get the uploaded image
+        // Cek apakah ada file gambar yang diunggah
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $name_image = time() . "_point." . strtolower($image->getClientOriginalExtension());
             $image->move('storage/images', $name_image);
-            } else {
-                $name_image = null;
-                }
+        } else {
+            $name_image = null;
+        }
 
         $data = [
-            'geom' => $request->geometry_point,
             'name' => $request->name,
+            'geom' => $request->geometry_point,
             'description' => $request->description,
-            'image' => $name_image,
+            'image' => $name_image
         ];
 
-
-
-        // simpan data ke database
-        if ($this->points->create($data)) {
-    return redirect()->route('peta')->with('success', 'Data point berhasil disimpan.');
-}
+        // Simpan data ke database
+        if (!$this->points->create($data)) {
+            return redirect()->back()->with('error', 'Gagal menyimpan point!');
+        }
 
         //Kembali ke halaman peta
-        return redirect()->route('peta')->with('error', 'Gagal menyimpan data point.');
+        return redirect()->route('peta')->with('success', 'Point berhasil disimpan!');
     }
 
     /**
@@ -114,6 +114,25 @@ class PointsController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+
+        //Mencari nama file gambar yang akan dihapus
+        $image = $this->points->find($id)->image;
+
+        // Hapus data dari database
+        if (!$this->points->destroy($id)) {
+            return redirect()->route('peta')->with('error', 'Gagal menghapus point!');
+        }
+
+        //Hapus file gambar jika ada
+        if ($image != null) {
+            // Cek apakah file gambar ada sebelum menghapus
+            if (file_exists('storage/images/' . $image)) {
+                // Hapus file gambar dari direktori
+                unlink('storage/images/' . $image);
+            }
+        }
+
+        //Kembali ke halaman peta
+        return redirect()->route('peta')->with('success', 'Point berhasil dihapus!');
     }
 }

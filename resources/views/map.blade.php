@@ -55,7 +55,8 @@
                         <div class="mb-3">
                             <label>image</label>
                             <input type="file" class="form-control" name="image"
-                                onchange="document.getElementById('preview-image-point').src = window.URL.createObjectURL(this.files[0])">
+                                onchange="document.getElementById('preview-image-point').src =
+                                window.URL.createObjectURL(this.files[0])">
                             <img src="" alt="" id="preview-image-point" class="img-thumbnail"
                                 width="400">
                         </div>
@@ -246,16 +247,30 @@
 
         // GeoJSON Point
         var points = L.geoJSON(null, {
-            // Style
+            //style
 
             // onEachFeature
             onEachFeature: function(feature, layer) {
+                //Route delete point
+                var routedelete = "{{ route('points.delete', ':id') }}";
+                routedelete = routedelete.replace(':id', feature.properties.id);
+
+
+
                 // variable popup content
                 var popup_content = "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.
-                properties.image + "' alt='Image Point' class='img-thumbnail' width='600'>";
+                properties.image + "' alt='Image Point' class='img-thumbnail' width='600'>" +
+                "<br><br>" +
+
+                "<form action='" + routedelete + "' method='post'>" +
+                    '@csrf' +
+                    '@method("delete")' +
+                    "<button type='submit'class='btn btn-sm btn-danger' tittle='Delete feature' onclick='return confirm(`Are you sure you want to delete this feature?`)'><i class='fa-solid fa-trash-can'></i></button>" +
+                    "</form>"
+                ;
 
                 layer.on({
                     click: function(e) {
@@ -274,16 +289,28 @@
 
         // GeoJSON Polylines
         var polylines = L.geoJSON(null, {
-            // Style
+            //Style
 
             // onEachFeature
             onEachFeature: function(feature, layer) {
+
+                //Route delete polyline
+                var routedelete = "{{ route('polylines.delete', ':id') }}";
+                routedelete = routedelete.replace(':id', feature.properties.id);
+
                 // variable popup content
                 var popup_content = "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.
-                properties.image + "' alt='Image Polyline' class='img-thumbnail' width='600'>";
+                properties.image + "' alt='Image Polyline' class='img-thumbnail' width='600'>" +
+                "<br><br>" +
+
+                "<form action='" + routedelete + "' method='post'>" +
+                    '@csrf' +
+                    '@method("delete")' +
+                    "<button type='submit'class='btn btn-sm btn-danger' tittle='Delete feature' onclick='return confirm(`Are you sure you want to delete this feature?`)'><i class='fa-solid fa-trash-can'></i></button>" +
+                    "</form>";
                 layer.on({
                     click: function(e) {
                         polylines.bindPopup(popup_content);
@@ -301,16 +328,28 @@
 
         // GeoJSON Polygons
         var polygons = L.geoJSON(null, {
-            // Style
+            //style
 
             // onEachFeature
             onEachFeature: function(feature, layer) {
+
+                //Route delete polygon
+                var routedelete = "{{ route('polygons.delete', ':id') }}";
+                routedelete = routedelete.replace(':id', feature.properties.id);
+
                 // variable popup content
                 var popup_content = "Nama: " + feature.properties.name + "<br>" +
                     "Deskripsi: " + feature.properties.description + "<br>" +
                     "Dibuat: " + feature.properties.created_at + "<br>" +
                     "<img src='{{ asset('storage/images') }}/" + feature.
-                properties.image + "' alt='Image Polyline' class='img-thumbnail' width='600'>";
+                properties.image + "' alt='Image Polyline' class='img-thumbnail' width='600'>" +
+                "<br><br>" +
+
+                "<form action='" + routedelete + "' method='post'>" +
+                    '@csrf' +
+                    '@method("delete")' +
+                    "<button type='submit'class='btn btn-sm btn-danger' tittle='Delete feature' onclick='return confirm(`Are you sure you want to delete this feature?`)'><i class='fa-solid fa-trash-can'></i></button>" +
+                    "</form>";
 
                 layer.on({
                     click: function(e) {
